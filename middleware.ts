@@ -9,7 +9,8 @@ export function middleware(request: NextRequest) {
   if (pathname === '/api/site-auth') return NextResponse.next()
 
   const cookie = request.cookies.get(COOKIE_NAME)
-  if (cookie?.value === process.env.SITE_PASSWORD) return NextResponse.next()
+  const sitePassword = process.env.SITE_PASSWORD
+  if (sitePassword && cookie?.value === sitePassword) return NextResponse.next()
 
   // Block — return inline password gate (no redirect, so the URL stays clean)
   return new NextResponse(passwordGateHtml(request.url), {
