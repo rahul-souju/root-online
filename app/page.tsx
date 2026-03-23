@@ -10,9 +10,10 @@ export default function HomePage() {
 
   const [joinCode, setJoinCode] = useState('')
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [magicSent, setMagicSent] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false)
   const [view, setView] = useState<'auth' | 'play'>('auth')
 
   // Check if already logged in
@@ -22,20 +23,25 @@ export default function HomePage() {
     })
   }, [])
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/` },
-    })
-
-    if (error) {
-      setError(error.message)
+    if (isSignUp) {
+      const { error } = await supabase.auth.signUp({ email, password })
+      if (error) {
+        setError(error.message)
+      } else {
+        // Auto sign-in after sign-up
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) setError(signInError.message)
+        else setView('play')
+      }
     } else {
-      setMagicSent(true)
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) setError(error.message)
+      else setView('play')
     }
     setIsLoading(false)
   }
@@ -100,45 +106,54 @@ export default function HomePage() {
           style={{ background: '#111d13', border: '1px solid #2D6A4F' }}>
 
           <h2 className="font-serif text-xl text-center" style={{ color: '#D4A848' }}>
-            Sign In to Play
+            {isSignUp ? 'Create Account' : 'Sign In to Play'}
           </h2>
 
-          {magicSent ? (
-            <div className="text-center space-y-3">
-              <div className="text-4xl">📬</div>
-              <p className="text-gray-300">Check your email for a magic link!</p>
-              <p className="text-gray-500 text-sm">{email}</p>
-              <button
-                onClick={() => setMagicSent(false)}
-                className="text-sm text-gray-500 hover:text-gray-300 underline"
-              >
-                Use a different email
-              </button>
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Email address</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-600 focus:border-green-600 outline-none"
+              />
             </div>
-          ) : (
-            <form onSubmit={handleMagicLink} className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Email address</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-600 focus:border-green-600 outline-none"
-                />
-              </div>
-              {error && <p className="text-red-400 text-sm">{error}</p>}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 rounded-lg font-semibold transition-all disabled:opacity-50"
-                style={{ background: '#2D6A4F', color: 'white' }}
-              >
-                {isLoading ? 'Sending...' : 'Send Magic Link'}
-              </button>
-            </form>
-          )}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-600 focus:border-green-600 outline-none"
+              />
+            </div>
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-2.5 rounded-lg font-semibold transition-all disabled:opacity-50 hover:brightness-110 active:scale-95"
+              style={{ background: '#2D6A4F', color: 'white' }}
+            >
+              {isLoading ? (isSignUp ? 'Creating...' : 'Signing in...') : (isSignUp ? 'Create Account' : 'Sign In')}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              onClick={() => { setIsSignUp(!isSignUp); setError(null) }}
+              className="underline hover:text-gray-300 transition-colors"
+              style={{ color: '#D4A848' }}
+            >
+              {isSignUp ? 'Sign in' : 'Sign up'}
+            </button>
+          </p>
         </div>
       )}
 
