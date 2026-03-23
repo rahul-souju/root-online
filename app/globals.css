@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --forest-green: #2D6A4F;
+  --clay-red: #B5451B;
+  --harvest-gold: #D4A848;
+  --parchment: #F5F0E8;
+  --dark-wood: #1a140a;
+}
+
+html,
+body {
+  background: #0f1a10;
+  color: #e8e0d0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1a10;
+}
+::-webkit-scrollbar-thumb {
+  background: #2D6A4F;
+  border-radius: 3px;
+}
+
+/* Woodland-themed focus rings */
+*:focus-visible {
+  outline: 2px solid #D4A848;
+  outline-offset: 2px;
+}
